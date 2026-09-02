@@ -1,0 +1,6 @@
+.env-non-dev
+docker
+docker-compose.yml
+Dockerfile
+venv
+.venv
