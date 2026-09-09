@@ -2,20 +2,18 @@ from sqlalchemy import select, insert
 
 from app.database import async_session_maker
 from app.messanger.schemas import SMessangerGet
-from app.users.schemas import SUserID
 
 
 class BaseDAO:
     model = None
 
     @classmethod
-    async def find_by_id(cls, model_id: int) -> SUserID:
+    async def find_by_id(cls, model_id):
         async with async_session_maker() as session:
-            query = select(cls.model).filter_by(id=model_id)
+            query = select(cls.model).where(cls.model.id == model_id)
             result = await session.execute(query)
-            result = result.scalar_one_or_none()
-            result_dto = SUserID.model_validate(result, from_attributes=True)
-            return result_dto
+            return result.scalar_one_or_none()
+
 
     @classmethod
     async def find_one_or_none(cls, **filter_by):
@@ -36,7 +34,5 @@ class BaseDAO:
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
-            result = result.scalars().all()
-            result_dto = [SMessangerGet.model_validate(row, from_attributes=True) for row in result]
-            return result_dto
-
+            rows = result.scalars().all()
+            return [SMessangerGet.model_validate(row, from_attributes=True) for row in rows]

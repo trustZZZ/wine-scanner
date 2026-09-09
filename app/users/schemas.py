@@ -1,22 +1,32 @@
 from pydantic import BaseModel, EmailStr
-
-
-class SUserID(BaseModel):
-    id: int | None = None
+from uuid import UUID
+from datetime import datetime
 
 
 class SUserRegister(BaseModel):
-    email: EmailStr | None = None
-    password: str | None = None
-    organization: str | None = None
-    tin: str | None = None
-    web_site: str | None = None
-    business: str | None = None
-    country: str | None = None
-    city: str | None = None
-    post: str | None = None
+    email: EmailStr
+    password: str
 
 
 class SUserLogin(BaseModel):
-    email: EmailStr | None = None
-    password: str | None = None
+    email: EmailStr
+    password: str
+
+
+class SUserOut(BaseModel):
+    id: UUID
+    email: EmailStr
+    is_age_verified: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class STokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class SRefreshRequest(BaseModel):
+    refresh_token: str

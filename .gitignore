@@ -1,6 +1,26 @@
-.env-non-dev
-docker
-docker-compose.yml
-Dockerfile
-venv
-.venv
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env
+.env
+.env.*
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Misc
+*.log
+.DS_Store
+
+# Test
+.pytest_cache/
+htmlcov/
+.coverage
