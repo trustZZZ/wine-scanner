@@ -39,6 +39,9 @@ class Scan(Base):
     status: Mapped[str] = mapped_column(String, nullable=False, default="queued")
     ocr_raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     matched_wine_id: Mapped[UUID | None] = mapped_column(PGUUID(as_uuid=True), ForeignKey("wines.id"), nullable=True)
+    # ДОБАВИТЬ ЭТИ ДВА ПОЛЯ:
+    wine_card: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    confidence: Mapped[float | None] = mapped_column(nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=func.now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

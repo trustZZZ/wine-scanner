@@ -1,32 +1,34 @@
 import logging
-
-from celery.result import AsyncResult
-from fastapi import APIRouter, HTTPException
-
-from app.schemas.scan import ScanRequest, ScanResultResponse, ScanTaskResponse
 from app.tasks.tasks import scan_wine_label
-from fastapi import APIRouter, UploadFile, File, Form
+from celery.result import AsyncResult
+from app.users.dependencies import get_current_user
+from app.schemas.scan import ScanRequest, ScanResultResponse, ScanTaskResponse
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from app.services.minio_service import upload_image
+
 import uuid
+
+
 router = APIRouter(prefix="/scan", tags=["scan"])
 logger = logging.getLogger(__name__)
 
 
 @router.post("/scan-upload")
-async def scan_upload(file: UploadFile = File(...), user_id: str = Form(...)):
+async def scan_upload(file: UploadFile = File(...), user_id: str = Form(...), current_user=Depends(get_current_user),):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Файл должен быть изображением")
+
     file_bytes = await file.read()
-    # Папка по user_id + уникальный ID, чтобы не было коллизий
     object_name = f"{user_id}/{uuid.uuid4().hex}.jpg"
     image_url = upload_image(file_bytes, object_name)
 
-    # Здесь ты вызываешь свою Celery-задачу (убедись, что импорт верный)
-    from app.tasks.tasks import scan_wine_label
     task = scan_wine_label.delay(image_url=image_url, user_id=user_id)
 
     return {
         "task_id": task.id,
         "image_url": image_url,
     }
+
 
 @router.post("", response_model=ScanTaskResponse, status_code=202)
 def create_scan(request: ScanRequest) -> ScanTaskResponse:

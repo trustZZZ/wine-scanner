@@ -2,7 +2,7 @@
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from uuid import uuid4
 from datetime import datetime
 from uuid import UUID
@@ -26,4 +26,11 @@ class Wine(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
     # Опционально: откуда пришла запись (из OCR-задачи)
-    source_task_id: Mapped[UUID | None] = mapped_column(PGUUID(as_uuid=True), ForeignKey("wine_scan_tasks.id"), nullable=True, index=True)
+    source_task_id: Mapped[UUID | None] = mapped_column(
+    PGUUID(as_uuid=True),
+    nullable=True,
+    index=True,
+)
+
+
+

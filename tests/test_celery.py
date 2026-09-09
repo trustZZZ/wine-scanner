@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from app.tasks.celery_tasks import scan_wine_label, parse_ocr_to_card
+from app.tasks.tasks import scan_wine_label, parse_ocr_to_card
+from app.tasks.celery_app import celery_app
+from app.tasks.tasks import scan_wine_label, parse_ocr_to_card
 from tests.mock_data import MOCK_OCR_TEXT, MOCK_WINE_CARD
 
 
@@ -34,8 +36,8 @@ def test_celery_task_runs(monkeypatch):
     mock_db = MagicMock()
     mock_query = MagicMock()
     mock_db.query.return_value.filter.return_value.first.return_value = None  # вино не найдено
-    monkeypatch.setattr("app.tasks.celery_tasks.get_sync_db", lambda: mock_db)
-    monkeypatch.setattr("app.tasks.celery_tasks.s3_client", MagicMock())
+    monkeypatch.setattr("app.tasks.tasks.get_sync_db", lambda: mock_db)
+    monkeypatch.setattr("app.tasks.tasks.s3_client", MagicMock())
 
     # Мокаем создание Wine и Scan
     mock_wine = MagicMock(id="wine-uuid")

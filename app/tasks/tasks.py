@@ -53,10 +53,11 @@ def scan_wine_label(self, image_url: str, user_id: str):
             status="completed",
             ocr_raw_text=ocr_raw_text,
             wine_card=wine_card,
-            wine_id=wine.id,
+            matched_wine_id=wine.id,   # было wine_id
             confidence=confidence,
             completed_at=datetime.now(timezone.utc),
         )
+
         db.add(scan)
         db.commit()
         db.refresh(scan)
