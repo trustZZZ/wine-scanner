@@ -1,10 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -19,16 +15,12 @@ jobs:
           POSTGRES_DB: wine_test
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
         image: redis:7
         ports:
           - 6379:6379
+        options: --health-cmd "ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -36,25 +28,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+        run: pip install -r requirements.txt
 
-      - name: Install project
-        run: pip install -e .
-
-      - name: Run migrations
+      # Миграции (обязательно перед тестами, иначе будет relation does not exist)
+      - name: Apply DB migrations
+        run: alembic upgrade head
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/wine_test
-        run: |
-          alembic upgrade head || true
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
 
-      - name: Run tests
+      # Тесты с PYTHONPATH=., чтобы import app работал
+      - name: Run tests with coverage
+        run: PYTHONPATH=. pytest --cov=app --cov-report=xml
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/wine_test
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-for-ci
           ALGORITHM: HS256
@@ -62,9 +51,3 @@ jobs:
           MINIO_ACCESS_KEY: minioadmin
           MINIO_SECRET_KEY: minioadmin
           MINIO_BUCKET: wine-labels
-        run: pytest --cov=app --cov-report=xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
