@@ -17,6 +17,7 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+
     steps:
       - uses: actions/checkout@v4
 
@@ -47,6 +48,7 @@ jobs:
       - name: Apply DB migrations
         run: alembic upgrade head
         env:
+          LOG_LEVEL: WARNING
           DB_HOST: localhost
           DB_PORT: 5432
           DB_USER: postgres

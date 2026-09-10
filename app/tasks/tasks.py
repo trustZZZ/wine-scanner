@@ -7,10 +7,14 @@ from uuid import UUID
 from datetime import datetime, timezone
 import json
 from app.services.minio_service import s3_client, BUCKET_NAME
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 @shared_task(queue='scan', bind=True, max_retries=3)
 def scan_wine_label(self, image_url: str, user_id: str):
+    logger.info("Starting scan task for image: %s", image_url)
     db: Session = get_sync_db()
 
     try:

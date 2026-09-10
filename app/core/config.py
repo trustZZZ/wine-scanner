@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_ENV: str = "dev"
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
 
     # Auth
     SECRET_KEY: str
