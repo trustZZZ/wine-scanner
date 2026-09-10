@@ -25,8 +25,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      # Ставим основные зависимости (FastAPI, SQLAlchemy, Celery и т.д.)
+      - name: Install runtime dependencies
         run: pip install -r requirements.txt
+
+      # ВАЖНО: Ставим dev-зависимости (pytest, alembic, mypy и т.д.)
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
 
       - name: Wait for PostgreSQL
         run: |
@@ -60,4 +65,3 @@ jobs:
           DB_NAME: wine_test
           SECRET_KEY: test-secret-key-for-ci
           ALGORITHM: HS256
-          
