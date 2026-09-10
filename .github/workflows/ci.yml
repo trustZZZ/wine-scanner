@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      # Оставляем ТОЛЬКО Postgres: он нужен для миграций и SQL-тестов
       postgres:
         image: postgres:15
         env:
@@ -16,11 +17,6 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7
-        ports:
-          - 6379:6379
-        options: --health-cmd "ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -33,21 +29,30 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Миграции (обязательно перед тестами, иначе будет relation does not exist)
+      # ВАЖНО: ждём готовности БД перед миграциями
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      # Миграции: обязательно перед тестами, иначе relation does not exist
       - name: Apply DB migrations
         run: alembic upgrade head
         env:
           DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
 
-      # Тесты с PYTHONPATH=., чтобы import app работал
+      # Тесты: PYTHONPATH=. решает проблему import app
+      # Переменные для Redis/MinIO НЕ передаём — они не нужны, так как всё замокано
       - name: Run tests with coverage
         run: PYTHONPATH=. pytest --cov=app --cov-report=xml
         env:
           DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
-          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-for-ci
           ALGORITHM: HS256
-          MINIO_ENDPOINT: http://localhost:9000
-          MINIO_ACCESS_KEY: minioadmin
-          MINIO_SECRET_KEY: minioadmin
-          MINIO_BUCKET: wine-labels
+          # REDIS_URL, MINIO_* — удалены! Не нужны, если в тестах всё замокано.
