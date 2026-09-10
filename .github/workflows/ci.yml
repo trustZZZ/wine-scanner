@@ -41,26 +41,25 @@ jobs:
             sleep 2
           done
 
-      # Миграции: обязательно перед тестами, иначе relation does not exist
-      - name: Apply DB migrations
-        run: alembic upgrade head
+            - name: Apply DB migrations
+          run: alembic upgrade head
         env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASS: postgres
+          DB_NAME: wine_test
           SECRET_KEY: test-secret-key-for-ci
           ALGORITHM: HS256
-          REDIS_URL: redis://localhost:6379/0
-          MINIO_ENDPOINT: http://localhost:9000
-          MINIO_ACCESS_KEY: minioadmin
-          MINIO_SECRET_KEY: minioadmin
-          MINIO_BUCKET: wine-labels
 
-
-      # Тесты: PYTHONPATH=. решает проблему import app
-      # Переменные для Redis/MinIO НЕ передаём — они не нужны, так как всё замокано
       - name: Run tests with coverage
         run: PYTHONPATH=. pytest --cov=app --cov-report=xml
         env:
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASS: postgres
+          DB_NAME: wine_test
           SECRET_KEY: test-secret-key-for-ci
           ALGORITHM: HS256
-          # REDIS_URL, MINIO_* — удалены! Не нужны, если в тестах всё замокано.
+
