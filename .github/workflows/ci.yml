@@ -46,6 +46,14 @@ jobs:
         run: alembic upgrade head
         env:
           DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/wine_test
+          SECRET_KEY: test-secret-key-for-ci
+          ALGORITHM: HS256
+          REDIS_URL: redis://localhost:6379/0
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+          MINIO_BUCKET: wine-labels
+
 
       # Тесты: PYTHONPATH=. решает проблему import app
       # Переменные для Redis/MinIO НЕ передаём — они не нужны, так как всё замокано
